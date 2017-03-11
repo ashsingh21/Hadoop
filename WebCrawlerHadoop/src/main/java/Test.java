@@ -36,6 +36,8 @@ public class Test {
             e.printStackTrace();
         }
 
+        response.
+
 
         String val = response.getEntity().getContentType().getValue();
         String[] values = val.split(";");
