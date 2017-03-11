@@ -1,2 +1,2 @@
 # Hadoop
-Some simple hadoop projects
+Some hadoop code that I wrote during learning hadoop.
