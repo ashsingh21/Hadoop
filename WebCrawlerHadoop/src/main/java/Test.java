@@ -1,17 +1,15 @@
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.message.BasicHttpRequest;
 import org.apache.http.util.EntityUtils;
+import org.jsoup.Jsoup;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URI;
 
 import static org.apache.http.HttpHeaders.USER_AGENT;
 
@@ -20,15 +18,15 @@ import static org.apache.http.HttpHeaders.USER_AGENT;
  */
 public class Test {
 
-    public static void main(String... args) throws IOException{
+    public static void main(String... args) throws Exception{
 
-        String url = "http://www.google.com/search?q=httpClient";
+        String url = "http://www.youtube.com/";
 
         HttpClient client = HttpClientBuilder.create().build();
         HttpGet request = new HttpGet(url);
 
         // add request header
-       // request.addHeader("User-Agent", USER_AGENT);
+        request.addHeader("User-Agent", USER_AGENT);
         HttpResponse response = null;
         try {
             response = client.execute(request);
@@ -36,29 +34,42 @@ public class Test {
             e.printStackTrace();
         }
 
-        response.
 
-
-        String val = response.getEntity().getContentType().getValue();
-        String[] values = val.split(";");
-        System.out.println(values[0] + values[1]);
-        System.out.print(val);
         BufferedReader rd = null;
-        try {
+        /*try {
             rd = new BufferedReader(
                     new InputStreamReader(response.getEntity().getContent()));
         }catch (IOException e){
                 e.printStackTrace();
-        }
+        }*/
 
-
+/*
         StringBuilder result = new StringBuilder();
         String line = "";
         while ((line = rd.readLine()) != null) {
             result.append(line);
+        }*/
+
+        String con = response.getEntity().getContentType().getValue();
+        System.out.println(con);
+
+        String[] parts = con.split(";");
+        System.out.println(con == null);
+
+
+
+        String a = EntityUtils.toString(response.getEntity());
+        System.out.print(a);
+        org.jsoup.nodes.Document document = Jsoup.parse(a,"http://www.youtube.com");
+
+        URIBuilder builder = new URIBuilder("http://www.youtube.com");
+        URI link = builder.build();
+        System.out.print(link.toString());
+        for (org.jsoup.nodes.Element element : document.select("a[href]")) {
+            String href = element.attr("href");
+            URI f = link.resolve(href);
+            System.out.println(f.getHost());
+
         }
-
-        System.out.print(result.toString());
-
     }
 }
