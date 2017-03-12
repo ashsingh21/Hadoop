@@ -66,6 +66,7 @@ public class Test {
 
         Configuration conf = new Configuration();
 
+
         URIBuilder builder = new URIBuilder("http://www.youtube.com");
         URI link = builder.build();
         System.out.print(link.toString());

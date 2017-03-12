@@ -1,3 +1,5 @@
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.CookieSpecs;
@@ -11,7 +13,6 @@ import org.jsoup.Jsoup;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
@@ -45,15 +46,16 @@ public class WebCrawler {
         this.threadCount = threadCount;
     }
 
-    public boolean createFile(String path) {
+    public boolean createFile(String output) {
         this.path = path;
         File file = null;
         try {
-            file = new File(path);
+         /*   file = new File(path);
             if (!file.exists()) {
                 file.createNewFile();
-            }
-            bw = new BufferedWriter(new FileWriter(path, true));
+            }*/
+            bw = HDFSFileWriter.get(output);
+         //   bw = new BufferedWriter(new FileWriter(path, true));
             fileCreated = true;
             return true;
         } catch (IOException e) {
@@ -114,15 +116,16 @@ public class WebCrawler {
         HttpGet request = new HttpGet(url);
         HttpResponse response = client.execute(request);
 
-        System.out.println("Response Code : " + response.getStatusLine().getStatusCode() + " Path: " +
-                url.toString());
-        String contentType = response.getEntity().getContentType().getValue();
-
-
         if (response.getStatusLine().getStatusCode() != 200) {
+            System.out.println("Error Code : " + response.getStatusLine().getStatusCode() + " Path: " +
+                    url.toString());
             return;
         }
 
+        System.out.println("Response Code : " + response.getStatusLine().getStatusCode() + " Path: " +
+                url.toString());
+
+        String contentType = response.getEntity().getContentType().getValue();
         // Content type format - "type;charset"
         String[] parts = contentType.split(";");
         String format = parts[0];
@@ -141,7 +144,6 @@ public class WebCrawler {
         URIBuilder builder = new URIBuilder(url);
         URI baseLink = builder.build();
 
-
         StringBuilder sb = new StringBuilder(url.toString()).append("\t");
         for (org.jsoup.nodes.Element element : document.select("a[href]")) {
             String href = element.attr("href");
@@ -149,7 +151,7 @@ public class WebCrawler {
             try {
                 childLink = baseLink.resolve(href);
             } catch (IllegalArgumentException e) {
-                System.out.println("Bad childLink");
+                System.out.println("Bad child link");
             }
             if (childLink != null) {
                 sb.append(childLink).append("\t");
@@ -164,8 +166,14 @@ public class WebCrawler {
     }
 
     public static void main(String[] args) throws Exception {
-        int thread = 100;
 
+        String[] pArgs = new GenericOptionsParser(new Configuration(),args).getRemainingArgs();
+        if(pArgs.length != 3){
+            System.out.println("Usage: <number of threads> <Starting Link> <out>");
+            System.exit(2);
+        }
+
+        int thread = Integer.parseInt(pArgs[0]) ;
         RequestConfig defaultRequestConfig = RequestConfig.custom()
                 .setCookieSpec(CookieSpecs.STANDARD)
                 .build();
@@ -175,12 +183,11 @@ public class WebCrawler {
 
 
         WebCrawler webCrawler = new WebCrawler(client, thread);
-        webCrawler.createFile("c:\\Users\\ashu\\file.tsv");
-        URI uri = new URI("https://en.wikipedia.org/wiki/Main_Page");
+        webCrawler.createFile(pArgs[2]);
+       // webCrawler.createFile("c:\\Users\\ashu\\file3.tsv");
+        URI uri = new URI(pArgs[1]);
         webCrawler.linkQueue.add(uri);
         webCrawler.execute();
-
-
     }
 
 }
