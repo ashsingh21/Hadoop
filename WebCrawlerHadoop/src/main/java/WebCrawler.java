@@ -14,6 +14,7 @@ import org.jsoup.Jsoup;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URI;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -33,7 +34,7 @@ public class WebCrawler {
     private final HttpClient client;
     private final LinkedBlockingQueue<URI> linkQueue = new LinkedBlockingQueue<URI>(); // a blocking list for URI's
     private String path;
-    private BufferedWriter bw;
+    private PrintWriter bw;
     // count the number of times a host has been visited
     private final ConcurrentHashMap<String, AtomicInteger> hostnames = new ConcurrentHashMap<String, AtomicInteger>();
     // keep unique uri's
@@ -46,7 +47,7 @@ public class WebCrawler {
         this.threadCount = threadCount;
     }
 
-    public boolean createFile(String output) {
+    public boolean createFile(String output, String[] resourcePaths) {
         this.path = path;
         File file = null;
         try {
@@ -54,7 +55,7 @@ public class WebCrawler {
             if (!file.exists()) {
                 file.createNewFile();
             }*/
-            bw = HDFSFileWriter.get(output);
+            bw = HDFSFileWriter.get(output,resourcePaths);
          //   bw = new BufferedWriter(new FileWriter(path, true));
             fileCreated = true;
             return true;
@@ -126,7 +127,7 @@ public class WebCrawler {
                 url.toString());
 
         String contentType = response.getEntity().getContentType().getValue();
-        // Content type format - "type;charset"
+        // Content type format - "format;charset"
         String[] parts = contentType.split(";");
         String format = parts[0];
 
@@ -154,13 +155,17 @@ public class WebCrawler {
                 System.out.println("Bad child link");
             }
             if (childLink != null) {
+                sb.append(1).append("\t");
                 sb.append(childLink).append("\t");
                 linkQueue.add(childLink);
             }
         }
+
         synchronized (bw) {
-            bw.write(sb.toString());
-            bw.newLine();
+            //bw.write()
+            //bw.newLine()
+            bw.append(sb.toString());
+            bw.append("\n");
         }
 
     }
@@ -182,8 +187,13 @@ public class WebCrawler {
                 build();
 
 
+        // add resource directories
+        String[] resourcePaths = {"/home/ashu/hadoop/etc/hadoop/core-site.xml",
+                                  "/home/ashu/hadoop/etc/hadoop/hdfs-site.xml"};
+
+
         WebCrawler webCrawler = new WebCrawler(client, thread);
-        webCrawler.createFile(pArgs[2]);
+        webCrawler.createFile(pArgs[2],resourcePaths);
        // webCrawler.createFile("c:\\Users\\ashu\\file3.tsv");
         URI uri = new URI(pArgs[1]);
         webCrawler.linkQueue.add(uri);

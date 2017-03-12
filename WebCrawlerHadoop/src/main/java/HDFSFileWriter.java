@@ -11,10 +11,14 @@ import java.io.*;
 // writes a file to the HDFS
 public class HDFSFileWriter  {
 
-    public static BufferedWriter get(String output) throws IOException{
+
+   // change back to buffered writer
+    public static PrintWriter get(String output, String[] resourcePaths) throws IOException{
+
         Configuration conf = new Configuration();
-        conf.addResource(new Path("/home/ashu/hadoop/etc/hadoop/core-site.xml"));
-        conf.addResource(new Path("/home/ashu/hadoop/etc/hadoop/hdfs-site.xml"));
+        for(String resourcePath: resourcePaths){
+            conf.addResource(new Path(resourcePath));
+        }
 
         conf.set("fs.hdfs.impl",
                 org.apache.hadoop.hdfs.DistributedFileSystem.class.getName()
@@ -29,10 +33,8 @@ public class HDFSFileWriter  {
         Path completePath = Path.mergePaths(workingDir,out);
         System.out.print(completePath.toString());
 
-        return new BufferedWriter(new OutputStreamWriter(fs.create(completePath)));
+        //return new BufferedWriter(new OutputStreamWriter(fs.create(completePath)));
+        return new PrintWriter(new OutputStreamWriter(fs.create(completePath)));
     }
-
-
-
 
 }
