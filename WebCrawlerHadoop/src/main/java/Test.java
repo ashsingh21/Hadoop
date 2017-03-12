@@ -1,3 +1,4 @@
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -5,6 +6,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
+import org.apache.hadoop.conf.Configuration;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -61,6 +63,8 @@ public class Test {
         String a = EntityUtils.toString(response.getEntity());
         System.out.print(a);
         org.jsoup.nodes.Document document = Jsoup.parse(a,"http://www.youtube.com");
+
+        Configuration conf = new Configuration();
 
         URIBuilder builder = new URIBuilder("http://www.youtube.com");
         URI link = builder.build();

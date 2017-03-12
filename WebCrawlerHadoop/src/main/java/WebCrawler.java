@@ -53,12 +53,12 @@ public class WebCrawler {
             if (!file.exists()) {
                 file.createNewFile();
             }
-            bw = new BufferedWriter(new FileWriter(path,true));
+            bw = new BufferedWriter(new FileWriter(path, true));
             fileCreated = true;
             return true;
         } catch (IOException e) {
             e.printStackTrace();
-            fileCreated =false;
+            fileCreated = false;
         }
         return false;
     }
@@ -83,7 +83,7 @@ public class WebCrawler {
 
     // parallel bfs
     private void execute() throws Exception {
-        if(fileCreated) {
+        if (fileCreated) {
             ExecutorService exec = Executors.newFixedThreadPool(threadCount);
             for (int i = 0; i < threadCount; i++) {
                 exec.execute(new Runnable() {
@@ -142,23 +142,21 @@ public class WebCrawler {
         URI baseLink = builder.build();
 
 
-
-        synchronized (bw) {
-            StringBuilder sb = new StringBuilder(url.toString()).append("\t");
-            for (org.jsoup.nodes.Element element : document.select("a[href]")) {
-                String href = element.attr("href");
-                URI childLink = null;
-                try {
-                    childLink = baseLink.resolve(href);
-                } catch (IllegalArgumentException e) {
-                     System.out.println("Bad childLink");
-                }
-                if (childLink != null) {
-                    sb.append(childLink).append("\t");
-                    linkQueue.add(childLink);
-                }
+        StringBuilder sb = new StringBuilder(url.toString()).append("\t");
+        for (org.jsoup.nodes.Element element : document.select("a[href]")) {
+            String href = element.attr("href");
+            URI childLink = null;
+            try {
+                childLink = baseLink.resolve(href);
+            } catch (IllegalArgumentException e) {
+                System.out.println("Bad childLink");
             }
-
+            if (childLink != null) {
+                sb.append(childLink).append("\t");
+                linkQueue.add(childLink);
+            }
+        }
+        synchronized (bw) {
             bw.write(sb.toString());
             bw.newLine();
         }
@@ -169,18 +167,20 @@ public class WebCrawler {
         int thread = 100;
 
         RequestConfig defaultRequestConfig = RequestConfig.custom()
-                                            .setCookieSpec(CookieSpecs.STANDARD)
-                                             .build();
+                .setCookieSpec(CookieSpecs.STANDARD)
+                .build();
         CloseableHttpClient client = HttpClients.custom().
-                            setDefaultRequestConfig(defaultRequestConfig).
-                            build();
+                setDefaultRequestConfig(defaultRequestConfig).
+                build();
 
 
         WebCrawler webCrawler = new WebCrawler(client, thread);
-        webCrawler.createFile("c:\\Users\\ashu\\file3.txt");
+        webCrawler.createFile("c:\\Users\\ashu\\file.tsv");
         URI uri = new URI("https://en.wikipedia.org/wiki/Main_Page");
         webCrawler.linkQueue.add(uri);
         webCrawler.execute();
+
+
     }
 
 }

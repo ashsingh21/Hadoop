@@ -1,0 +1,42 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="WebCrawlerHadoop:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/WebCrawlerHadoop_jar</output-path>
+    <root id="archive" name="WebCrawlerHadoop.jar">
+      <element id="module-output" name="WebCrawlerHadoop" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/apache/httpcomponents/httpclient/4.5.3/httpclient-4.5.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/apache/httpcomponents/httpcore/4.4.6/httpcore-4.4.6.jar" path-in-jar="/" />
+      <element id="dir-copy" path="$USER_HOME$/Desktop/had/httpfs" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/mapreduce/hadoop-mapreduce-examples-2.7.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/mapreduce/hadoop-mapreduce-client-hs-2.7.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/mapreduce/hadoop-mapreduce-client-app-2.7.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/mapreduce/hadoop-mapreduce-client-core-2.7.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/mapreduce/hadoop-mapreduce-client-common-2.7.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/mapreduce/hadoop-mapreduce-client-shuffle-2.7.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/mapreduce/hadoop-mapreduce-client-jobclient-2.7.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/mapreduce/hadoop-mapreduce-client-hs-plugins-2.7.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/mapreduce/hadoop-mapreduce-client-jobclient-2.7.3-tests.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/yarn/hadoop-yarn-api-2.7.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/yarn/hadoop-yarn-client-2.7.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/yarn/hadoop-yarn-common-2.7.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/yarn/hadoop-yarn-registry-2.7.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/yarn/hadoop-yarn-server-tests-2.7.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/yarn/hadoop-yarn-server-common-2.7.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/yarn/hadoop-yarn-server-web-proxy-2.7.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/yarn/hadoop-yarn-server-nodemanager-2.7.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/yarn/hadoop-yarn-server-resourcemanager-2.7.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/yarn/hadoop-yarn-server-sharedcachemanager-2.7.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/yarn/hadoop-yarn-applications-distributedshell-2.7.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/yarn/hadoop-yarn-server-applicationhistoryservice-2.7.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/yarn/hadoop-yarn-applications-unmanaged-am-launcher-2.7.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/common/hadoop-nfs-2.7.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/common/hadoop-common-2.7.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/common/hadoop-common-2.7.3-tests.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/hdfs/hadoop-hdfs-2.7.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/hdfs/hadoop-hdfs-nfs-2.7.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Desktop/had/hdfs/hadoop-hdfs-2.7.3-tests.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/commons-codec/commons-codec/1.9/commons-codec-1.9.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jsoup/jsoup/1.8.3/jsoup-1.8.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/commons-logging/commons-logging/1.2/commons-logging-1.2.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
