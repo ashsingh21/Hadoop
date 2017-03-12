@@ -5,17 +5,22 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -77,7 +82,7 @@ public class WebCrawler {
     }
 
     // parallel bfs
-    private void parellize() throws Exception {
+    private void execute() throws Exception {
         if(fileCreated) {
             ExecutorService exec = Executors.newFixedThreadPool(threadCount);
             for (int i = 0; i < threadCount; i++) {
@@ -175,7 +180,7 @@ public class WebCrawler {
         webCrawler.createFile("c:\\Users\\ashu\\file3.txt");
         URI uri = new URI("https://en.wikipedia.org/wiki/Main_Page");
         webCrawler.linkQueue.add(uri);
-        webCrawler.parellize();
+        webCrawler.execute();
     }
 
 }
