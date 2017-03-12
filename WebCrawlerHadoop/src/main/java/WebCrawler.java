@@ -1,15 +1,16 @@
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.jsoup.Jsoup;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -32,9 +33,9 @@ public class WebCrawler {
     // keep unique uri's
     private final Set<URI> urlSet = Collections.synchronizedSet(new LinkedHashSet<URI>());
     private int threadCount;
-    private Object lock = new Object();
+    private boolean fileCreated = false;
 
-    public WebCrawler(HttpClient client, int threadCount) {
+    public WebCrawler(CloseableHttpClient client, int threadCount) {
         this.client = client;
         this.threadCount = threadCount;
     }
@@ -46,20 +47,21 @@ public class WebCrawler {
             file = new File(path);
             if (!file.exists()) {
                 file.createNewFile();
-                return true;
             }
+            bw = new BufferedWriter(new FileWriter(path,true));
+            fileCreated = true;
+            return true;
         } catch (IOException e) {
             e.printStackTrace();
+            fileCreated =false;
         }
-        return true;
+        return false;
     }
 
     // a simple bfs crawl links in the page and create nodes with them
     public void addNewUrls() throws Exception {
         for (URI uri; (uri = linkQueue.take()) != null; ) {
             if (!urlSet.add(uri)) continue;
-
-
             Thread current = Thread.currentThread();
             String threadName = current.getName();
             current.setName("Crawl: " + uri.toString());
@@ -67,31 +69,32 @@ public class WebCrawler {
             try {
                 crawl(uri);
             } catch (IOException e) {
-                System.out.print("URi: " + uri + " ");
-                e.printStackTrace();
+                System.out.println("URi Error: " + uri);
             } finally {
                 current.setName(threadName);
             }
         }
     }
 
-    // parllelise bfs
+    // parallel bfs
     private void parellize() throws Exception {
-        ExecutorService exec = Executors.newFixedThreadPool(threadCount);
-        for (int i = 0; i < threadCount; i++) {
-            exec.execute(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        addNewUrls();
-                    } catch (Exception e) {
-                        e.printStackTrace();
+        if(fileCreated) {
+            ExecutorService exec = Executors.newFixedThreadPool(threadCount);
+            for (int i = 0; i < threadCount; i++) {
+                exec.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            addNewUrls();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
-                }
-            });
-        }
+                });
+            }
 
-        exec.shutdown();
+            exec.shutdown();
+        }
     }
 
     // method to fetch links from the webpage
@@ -134,30 +137,43 @@ public class WebCrawler {
         URI baseLink = builder.build();
 
 
-        bw = new BufferedWriter(new FileWriter(path, true));
+
         synchronized (bw) {
-            StringBuilder sb = new StringBuilder(url.toString()).append(",");
+            StringBuilder sb = new StringBuilder(url.toString()).append("\t");
             for (org.jsoup.nodes.Element element : document.select("a[href]")) {
                 String href = element.attr("href");
-                URI childLink = baseLink.resolve(href);
-                sb.append(childLink).append(",");
-                linkQueue.add(childLink);
+                URI childLink = null;
+                try {
+                    childLink = baseLink.resolve(href);
+                } catch (IllegalArgumentException e) {
+                     System.out.println("Bad childLink");
+                }
+                if (childLink != null) {
+                    sb.append(childLink).append("\t");
+                    linkQueue.add(childLink);
+                }
             }
+
             bw.write(sb.toString());
             bw.newLine();
-            bw.close();
         }
 
     }
 
     public static void main(String[] args) throws Exception {
-        int thread = 20;
+        int thread = 100;
 
-        HttpClient client = HttpClientBuilder.create().build();
+        RequestConfig defaultRequestConfig = RequestConfig.custom()
+                                            .setCookieSpec(CookieSpecs.STANDARD)
+                                             .build();
+        CloseableHttpClient client = HttpClients.custom().
+                            setDefaultRequestConfig(defaultRequestConfig).
+                            build();
+
 
         WebCrawler webCrawler = new WebCrawler(client, thread);
-        webCrawler.createFile("c:\\Users\\ashu\\file.txt");
-        URI uri = new URI("http://www.youtube.com");
+        webCrawler.createFile("c:\\Users\\ashu\\file3.txt");
+        URI uri = new URI("https://en.wikipedia.org/wiki/Main_Page");
         webCrawler.linkQueue.add(uri);
         webCrawler.parellize();
     }
