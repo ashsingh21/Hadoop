@@ -58,8 +58,10 @@ public class HDFSFileWriter  {
     }
 
     public synchronized void writeToFile(StringBuilder sb, boolean isShutDown) throws IOException {
-        if(isShutDown) return;
-        if (sb != null) {
+        if(isShutDown) {
+            bw.close();
+        }
+        else if (sb != null) {
             bw.write(sb.toString());
             bw.newLine();
         }
