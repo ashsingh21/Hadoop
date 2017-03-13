@@ -3,7 +3,6 @@
  */
 
 import FileWriters.HDFSFileWriter;
-import ThreadHelper.Crawl;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
