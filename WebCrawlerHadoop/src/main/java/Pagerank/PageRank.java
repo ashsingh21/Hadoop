@@ -1,11 +1,15 @@
 package Pagerank;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -39,7 +43,6 @@ public class PageRank {
                 ctx.write(new Text(link), new Text(sb.toString()));
             }
         }
-
     }
 
     public class ValueReducer extends Reducer<Text, Text, Text, Text> {
@@ -74,8 +77,25 @@ public class PageRank {
         }
     }
 
+    // structure the output of Value Reducer
+    public class StructureMapper extends Mapper<LongWritable, Text, DoubleWritable, Text>{
 
-    public static void main(String[] args) throws IOException {
+        @Override
+        public void map(LongWritable key, Text value, Context ctx) throws IOException, InterruptedException{
+            String line = value.toString();
+            String[] parts = line.split("\t");
+
+            String link = parts[0];
+            Double rank = Double.parseDouble(parts[1]);
+
+            ctx.write(new DoubleWritable(rank), new Text(link));
+
+        }
+
+    }
+
+
+    public void startPageRank(String inputPath, String outputPath) throws Exception {
         Configuration conf = new Configuration();
 
         Job job = Job.getInstance(conf, "Page Rank");
@@ -84,13 +104,53 @@ public class PageRank {
         job.setJarByClass(PageRank.class);
         job.setMapperClass(ValueMapper.class);
         job.setReducerClass(ValueReducer.class);
-        
+
         // good practice to set all the key value classes even though they are same
         job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(Text.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
 
+        FileInputFormat.addInputPath(job, new Path(inputPath));
+        FileOutputFormat.setOutputPath(job, new Path(outputPath));
+
+        job.waitForCompletion(true);
+
+    }
+
+    public void structureOutput(String inputPath, String outpath) throws Exception{
+        Configuration conf = new Configuration();
+        Job job = Job.getInstance(conf, "Structure output");
+
+        job.setJarByClass(PageRank.class);
+        job.setMapperClass(StructureMapper.class);
+        job.setMapOutputKeyClass(DoubleWritable.class);
+        job.setMapOutputValueClass(Text.class);
+
+        FileInputFormat.addInputPath(job, new Path(inputPath));
+        FileOutputFormat.setOutputPath(job, new Path(outpath));
+
+        job.waitForCompletion(true);
+
+    }
+
+
+    public static void main(String[] args) throws Exception{
+        PageRank pageRank = new PageRank();
+
+        if(args.length != 2){
+            System.out.println("Usage: <Number of runs>");
+        }
+
+        int runs = Integer.parseInt(args[0]);
+        String output = args[1];
+
+        int n;
+        for (n = 0; n < runs; n++){
+            pageRank.startPageRank("/WebCrawler/iter"+n, "/WebCrawler/iter" + (n + 1));
+        }
+
+        pageRank.structureOutput("/WebCrawler/iter" + n, "/WebCrawler/PageRank");
     }
 
 }
