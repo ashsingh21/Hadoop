@@ -20,13 +20,17 @@ public class Crawl implements Callable<StringBuilder> {
     private HttpClient client;
     private LinkedBlockingQueue<URI> uriLinkedBlockingQeque;
     private ConcurrentHashMap<String,AtomicInteger> hostnames;
+    private AtomicInteger atomicInteger;
+    private int iterations;
 
     public Crawl(URI uri, LinkedBlockingQueue<URI> uriLinkedBlockingQeque,
-                 HttpClient client, ConcurrentHashMap<String,AtomicInteger> hostnames) {
+                 HttpClient client, ConcurrentHashMap<String,AtomicInteger> hostnames,AtomicInteger atomicInteger, int iterations) {
         this.uri = uri;
         this.client = client;
         this.uriLinkedBlockingQeque = uriLinkedBlockingQeque;
         this.hostnames = hostnames;
+        this.atomicInteger = atomicInteger;
+        this.iterations = iterations;
     }
 
     @Override
@@ -91,7 +95,9 @@ public class Crawl implements Callable<StringBuilder> {
                  System.out.println("cant resolve child link");
             }
             if (childLink != null) {
-                uriLinkedBlockingQeque.add(childLink);
+                if(atomicInteger.get() <= iterations) {
+                    uriLinkedBlockingQeque.add(childLink);
+                }
                 sb.append(childLink.toString()).append("\t");
             }
         }

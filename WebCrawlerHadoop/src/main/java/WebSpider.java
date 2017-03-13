@@ -31,15 +31,18 @@ public class WebSpider {
     // a blocking queue / producer consumer pattern
     private final LinkedBlockingQueue<URI> linkQueue;
     private CloseableHttpClient client;
+    private AtomicInteger count;
+    private int iterations;
 
-
-    public WebSpider(CloseableHttpClient client) {
+    public WebSpider(CloseableHttpClient client, int iterations) {
         this.client = client;
         linkQueue = new LinkedBlockingQueue<>();
+        count = new AtomicInteger();
+        this.iterations = iterations;
     }
 
-    public WebSpider(CloseableHttpClient client, String output) {
-        this(client);
+    public WebSpider(CloseableHttpClient client,int iterations, String output) {
+        this(client,iterations);
         this.output = output;
     }
 
@@ -48,13 +51,18 @@ public class WebSpider {
     public void addNewUrls() throws Exception {
         ExecutorService pool = Executors.newFixedThreadPool(100);
         for (URI uri; (uri = linkQueue.poll(10, TimeUnit.SECONDS)) != null; ) {
+            System.out.println("Count: " + count.get());
+            if(count.incrementAndGet() > iterations){
+                System.out.println("Initiating shutdown");
+                shutdown(pool);
+            }
             if (!urlSet.add(uri)) continue;
             Thread current = Thread.currentThread();
             String threadName = current.getName();
             current.setName("Crawl: " + uri.toString());
 
             try {
-                Future<StringBuilder> future = pool.submit(new Crawl(uri, linkQueue, client, hostnames));
+                Future<StringBuilder> future = pool.submit(new Crawl(uri, linkQueue, client, hostnames,count, iterations));
                 StringBuilder sb = future.get();
                 HDFSFileWriter.getInstance().writeToFile(sb, pool.isTerminated());
             } catch (Exception e) {
@@ -64,6 +72,12 @@ public class WebSpider {
             }
         }
 
+
+
+
+    }
+
+    private void shutdown(ExecutorService pool){
         pool.shutdown();
         try {
             if (!pool.awaitTermination(5, TimeUnit.MINUTES)) {
@@ -88,8 +102,8 @@ public class WebSpider {
 
     public static void main(String[] args) throws Exception {
 
-        if (args.length != 1) {
-            System.out.println("Usage: <Starting link>");
+        if (args.length != 3) {
+            System.out.println("Usage: <Starting link> <total Links> <iterations>");
             return;
         }
 
@@ -108,16 +122,15 @@ public class WebSpider {
                         build();
 
 
-        // String out = "c:\\Users\\ashu\\file5.tsv";
-        WebSpider webCrawler = new WebSpider(client);
+        WebSpider webCrawler = new WebSpider(client, Integer.parseInt(args[1]));
 
-        // webCrawler.createFile();
+
         URI uri = new URI(args[0]);
         webCrawler.linkQueue.add(uri);
         webCrawler.execute();
 
         PageRank pageRank = new PageRank();
-        pageRank.run();
+        pageRank.run(Integer.parseInt(args[2]));
 
     }
 

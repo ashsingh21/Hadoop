@@ -1,6 +1,8 @@
 package Pagerank;
 
+import FileWriters.Conf;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -26,13 +28,13 @@ public class PageRank {
         public void map(LongWritable key, Text value, Context ctx) throws IOException, InterruptedException {
 
             String line = value.toString();
-            String[] parts = line.trim().split("\t");
+            String[] parts = line.trim().split("\t+");
             String link = parts[0];
+
             double rank = Double.parseDouble(parts[1]);
-            int totalOutlinks = 0;
             StringBuilder sb = new StringBuilder("|");
             if (parts.length > 2) {
-                totalOutlinks = parts.length - 2;
+                int totalOutlinks = parts.length - 2;
                 for (int i = 3; i < parts.length; i++) {
                     // output format "," seperated : key: <outgoing link>  value: <link> <rank> <total outgoing links>
                     ctx.write(new Text(parts[i]), new Text(link + "," + rank + "," + totalOutlinks));
@@ -54,11 +56,10 @@ public class PageRank {
             Iterator<Text> itr = values.iterator();
             double calculatedRank = 0;
 
-
             while (itr.hasNext()) {
                 String value = itr.next().toString();
                 // if original links store them in links
-                if(value.startsWith("|")){
+                if (value.startsWith("|")) {
                     links = "\t" + value.substring(1);
                     continue;
                 }
@@ -67,7 +68,7 @@ public class PageRank {
                 double rank = Double.valueOf(parts[1]);
                 int totalOutLinks = Integer.valueOf(parts[2]);
 
-                calculatedRank += (rank/totalOutLinks);
+                calculatedRank += (rank / totalOutLinks);
             }
 
             calculatedRank = DMP * calculatedRank + (1 - DMP);
@@ -78,12 +79,12 @@ public class PageRank {
     }
 
     // structure the output of Value Reducer
-    public static class StructureMapper extends Mapper<LongWritable, Text, DoubleWritable, Text>{
+    public static class StructureMapper extends Mapper<LongWritable, Text, DoubleWritable, Text> {
 
         @Override
-        public void map(LongWritable key, Text value, Context ctx) throws IOException, InterruptedException{
+        public void map(LongWritable key, Text value, Context ctx) throws IOException, InterruptedException {
             String line = value.toString();
-            String[] parts = line.split("\t");
+            String[] parts = line.split("\t+");
 
             String link = parts[0];
             Double rank = Double.parseDouble(parts[1]);
@@ -95,11 +96,10 @@ public class PageRank {
     }
 
 
-    public void startPageRank(String inputPath, String outputPath) throws Exception {
-        Configuration conf = new Configuration();
+    public void startPageRank(Path inputPath, Path outputPath) throws Exception {
+        Configuration conf = Conf.getConf();
 
         Job job = Job.getInstance(conf, "Page Rank");
-
 
         job.setJarByClass(PageRank.class);
         job.setMapperClass(ValueMapper.class);
@@ -111,15 +111,16 @@ public class PageRank {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
 
-        FileInputFormat.addInputPath(job, new Path(inputPath));
-        FileOutputFormat.setOutputPath(job, new Path(outputPath));
+        FileInputFormat.addInputPath(job, inputPath);
+        FileOutputFormat.setOutputPath(job, outputPath);
 
         job.waitForCompletion(true);
 
     }
 
-    public void structureOutput(String inputPath, String outpath) throws Exception{
-        Configuration conf = new Configuration();
+    public void structureOutput(Path inputPath, Path outpath) throws Exception {
+        Configuration conf = Conf.getConf();
+
         Job job = Job.getInstance(conf, "Structure output");
 
         job.setJarByClass(PageRank.class);
@@ -127,24 +128,39 @@ public class PageRank {
         job.setMapOutputKeyClass(DoubleWritable.class);
         job.setMapOutputValueClass(Text.class);
 
-        FileInputFormat.addInputPath(job, new Path(inputPath));
-        FileOutputFormat.setOutputPath(job, new Path(outpath));
+        FileInputFormat.addInputPath(job, inputPath);
+        FileOutputFormat.setOutputPath(job, outpath);
 
-        job.waitForCompletion(true);
+        System.exit(job.waitForCompletion(true) ? 0 : 1);
 
     }
 
 
-    public  void run() throws Exception{
-        int runs = 3;
-        String output = "a";
+    public void run(int runs) throws Exception {
+        String output = "output";
 
-        int n;
-        for (n = 0; n < runs; n++){
-            startPageRank("/WebCrawler/iter"+n, "/WebCrawler/iter" + (n + 1));
+        FileSystem fs = null;
+        try {
+            fs = FileSystem.get(Conf.getConf());
+        } catch (IOException e) {
+            System.out.println("Can't create File System: " + e);
         }
 
-        structureOutput("/WebCrawler/iter" + n, "/WebCrawler/PageRank");
+        Path workingDir = fs.getHomeDirectory();
+        Path out = new Path("/WebCrawler/iter0/" + output + ".tsv");
+
+        Path completePath = Path.mergePaths(workingDir, out);
+
+        int n;
+        for (n = 0; n < runs; n++) {
+            Path inputPath = Path.mergePaths(workingDir, new Path("/WebCrawler/iter" + n + "/"));
+            Path outputPath = Path.mergePaths(workingDir, new Path("/WebCrawler/iter" + (n + 1) + "/"));
+            startPageRank(inputPath, outputPath);
+        }
+
+        structureOutput(Path.mergePaths(workingDir, new Path("/WebCrawler/iter" + n + "/")),
+                Path.mergePaths(workingDir, new Path("/WebCrawler/PageRank/")));
+
     }
 
 }
