@@ -8,7 +8,7 @@ import org.jsoup.Jsoup;
 import java.net.URI;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -18,14 +18,14 @@ public class Crawl implements Callable<StringBuilder> {
 
     private URI uri;
     private HttpClient client;
-    private LinkedBlockingDeque<URI> uriLinkedBlockingDeque;
+    private LinkedBlockingQueue<URI> uriLinkedBlockingQeque;
     private ConcurrentHashMap<String,AtomicInteger> hostnames;
 
-    public Crawl(URI uri, LinkedBlockingDeque<URI> uriLinkedBlockingDeque,
+    public Crawl(URI uri, LinkedBlockingQueue<URI> uriLinkedBlockingQeque,
                  HttpClient client, ConcurrentHashMap<String,AtomicInteger> hostnames) {
         this.uri = uri;
         this.client = client;
-        this.uriLinkedBlockingDeque = uriLinkedBlockingDeque;
+        this.uriLinkedBlockingQeque = uriLinkedBlockingQeque;
         this.hostnames = hostnames;
     }
 
@@ -49,7 +49,7 @@ public class Crawl implements Callable<StringBuilder> {
 
         if (response.getStatusLine().getStatusCode() != 200) {
             System.out.println("Error Code : " + response.getStatusLine().getStatusCode() + " Path: " +
-                    url.toString());
+                    url.toString()); // not successful connection
             return null;
         }
 
@@ -88,10 +88,10 @@ public class Crawl implements Callable<StringBuilder> {
             try {
                 childLink = baseLink.resolve(href);
             } catch (IllegalArgumentException e) {
-                //  System.out.println("Bad child link");
+                 System.out.println("cant resolve child link");
             }
             if (childLink != null) {
-                uriLinkedBlockingDeque.add(childLink);
+                uriLinkedBlockingQeque.add(childLink);
                 sb.append(childLink.toString()).append("\t");
             }
         }

@@ -20,7 +20,7 @@ import java.util.Iterator;
 public class PageRank {
 
     // input format tab sepertaed :  <Link> <Rank> <Outgoing Links>
-    public class ValueMapper extends Mapper<LongWritable, Text, Text, Text> {
+    public static class ValueMapper extends Mapper<LongWritable, Text, Text, Text> {
 
         @Override
         public void map(LongWritable key, Text value, Context ctx) throws IOException, InterruptedException {
@@ -45,7 +45,7 @@ public class PageRank {
         }
     }
 
-    public class ValueReducer extends Reducer<Text, Text, Text, Text> {
+    public static class ValueReducer extends Reducer<Text, Text, Text, Text> {
         public static final float DMP = 0.85f;
 
         @Override
@@ -78,7 +78,7 @@ public class PageRank {
     }
 
     // structure the output of Value Reducer
-    public class StructureMapper extends Mapper<LongWritable, Text, DoubleWritable, Text>{
+    public static class StructureMapper extends Mapper<LongWritable, Text, DoubleWritable, Text>{
 
         @Override
         public void map(LongWritable key, Text value, Context ctx) throws IOException, InterruptedException{
@@ -135,22 +135,16 @@ public class PageRank {
     }
 
 
-    public static void main(String[] args) throws Exception{
-        PageRank pageRank = new PageRank();
-
-        if(args.length != 2){
-            System.out.println("Usage: <Number of runs>");
-        }
-
-        int runs = Integer.parseInt(args[0]);
-        String output = args[1];
+    public  void run() throws Exception{
+        int runs = 3;
+        String output = "a";
 
         int n;
         for (n = 0; n < runs; n++){
-            pageRank.startPageRank("/WebCrawler/iter"+n, "/WebCrawler/iter" + (n + 1));
+            startPageRank("/WebCrawler/iter"+n, "/WebCrawler/iter" + (n + 1));
         }
 
-        pageRank.structureOutput("/WebCrawler/iter" + n, "/WebCrawler/PageRank");
+        structureOutput("/WebCrawler/iter" + n, "/WebCrawler/PageRank");
     }
 
 }

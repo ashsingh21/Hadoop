@@ -3,6 +3,7 @@
  */
 
 import FileWriters.HDFSFileWriter;
+import Pagerank.PageRank;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -28,13 +29,13 @@ public class WebSpider {
     private final Set<URI> urlSet = Collections.synchronizedSet(new LinkedHashSet<URI>());
     private String output;
     // a blocking queue / producer consumer pattern
-    private final LinkedBlockingDeque<URI> linkQueue;
+    private final LinkedBlockingQueue<URI> linkQueue;
+    private CloseableHttpClient client;
 
-    CloseableHttpClient client;
 
-    public WebSpider(CloseableHttpClient client){
+    public WebSpider(CloseableHttpClient client) {
         this.client = client;
-        linkQueue = new LinkedBlockingDeque<>();
+        linkQueue = new LinkedBlockingQueue<>();
     }
 
     public WebSpider(CloseableHttpClient client, String output) {
@@ -53,10 +54,9 @@ public class WebSpider {
             current.setName("Crawl: " + uri.toString());
 
             try {
-                Future<StringBuilder> future = pool.submit(new Crawl(uri, linkQueue, client,hostnames));
+                Future<StringBuilder> future = pool.submit(new Crawl(uri, linkQueue, client, hostnames));
                 StringBuilder sb = future.get();
                 HDFSFileWriter.getInstance().writeToFile(sb, pool.isTerminated());
-                System.out.println("Queue Size: " + linkQueue.size());
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
@@ -65,22 +65,31 @@ public class WebSpider {
         }
 
         pool.shutdown();
-        pool.awaitTermination(10, TimeUnit.SECONDS);
+        try {
+            if (!pool.awaitTermination(5, TimeUnit.MINUTES)) {
+                pool.shutdownNow(); // terminate every thread
+                if (!pool.awaitTermination(60, TimeUnit.SECONDS))
+                    System.out.println("Didnt terminate"); // didn't terminate
+            }
+
+        } catch (InterruptedException e) {
+            pool.shutdownNow(); // try again
+            Thread.currentThread().interrupt(); // interrup threads if not interrupted
+        }
     }
 
+
     public void execute() throws Exception {
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 3; i++) {
             addNewUrls();
         }
     }
 
 
-
-
     public static void main(String[] args) throws Exception {
 
-        if(args.length != 2){
-            System.out.print("Usage: <Starting link> <output file name>");
+        if (args.length != 1) {
+            System.out.println("Usage: <Starting link>");
             return;
         }
 
@@ -99,24 +108,16 @@ public class WebSpider {
                         build();
 
 
-        // add resource directories
-        String[] resourcePaths = {"/home/ashu/hadoop/etc/hadoop/core-site.xml",
-                                  "/home/ashu/hadoop/etc/hadoop/hdfs-site.xml"};
-
-        // output file name
-
-        String output = args[1];
-
-        // set HDFS file writer conf
-        HDFSFileWriter.setConf(output,resourcePaths);
-
-        String out = "c:\\Users\\ashu\\file5.tsv";
+        // String out = "c:\\Users\\ashu\\file5.tsv";
         WebSpider webCrawler = new WebSpider(client);
 
         // webCrawler.createFile();
         URI uri = new URI(args[0]);
         webCrawler.linkQueue.add(uri);
         webCrawler.execute();
+
+        PageRank pageRank = new PageRank();
+        pageRank.run();
 
     }
 

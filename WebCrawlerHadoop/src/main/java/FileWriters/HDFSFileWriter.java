@@ -16,16 +16,14 @@ import java.io.OutputStreamWriter;
 public class HDFSFileWriter  {
 
     private static final HDFSFileWriter instance = new HDFSFileWriter();
-    private static String output;
-    private static String[] resourcePaths;
+    // resources directory
     private static BufferedWriter bw;
 
-    public static void setConf(String path, String[] resources){
-        output = path;
-        resourcePaths = resources;
-    }
 
     private HDFSFileWriter(){
+        String output = "output";
+        String[] resourcePaths =  {"/home/ashu/hadoop/etc/hadoop/core-site.xml",
+                "/home/ashu/hadoop/etc/hadoop/hdfs-site.xml"};;
         Configuration conf = new Configuration();
         for(String resourcePath: resourcePaths){
             conf.addResource(new Path(resourcePath));
@@ -46,12 +44,12 @@ public class HDFSFileWriter  {
             System.out.println("Can't create File System: " + e);
         }
 
-        Path workingDir = fs.getWorkingDirectory();
-        Path out = new Path("/WebCrawler/" + output + ".tsv");
+       // Path workingDir = fs.getWorkingDirectory();
+        Path out = new Path("/WebCrawler/iter0/" + output + ".tsv");
 
-        Path completePath = Path.mergePaths(workingDir,out);
+      //  Path completePath = Path.mergePaths(workingDir,out);
         try {
-            bw = new BufferedWriter(new OutputStreamWriter(fs.create(completePath,true)));
+            bw = new BufferedWriter(new OutputStreamWriter(fs.create(out,true)));
         }catch (IOException e){
            System.out.println("Can't create writer: " + e);
         }
