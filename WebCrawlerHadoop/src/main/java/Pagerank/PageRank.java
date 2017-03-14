@@ -28,7 +28,7 @@ public class PageRank {
         public void map(LongWritable key, Text value, Context ctx) throws IOException, InterruptedException {
 
             String line = value.toString();
-            String[] parts = line.trim().split("\t+");
+            String[] parts = line.trim().split("\\t");
             String link = parts[0];
 
             double rank = Double.parseDouble(parts[1]);
@@ -84,7 +84,7 @@ public class PageRank {
         @Override
         public void map(LongWritable key, Text value, Context ctx) throws IOException, InterruptedException {
             String line = value.toString();
-            String[] parts = line.split("\t+");
+            String[] parts = line.split("\\t");
 
             String link = parts[0];
             Double rank = Double.parseDouble(parts[1]);

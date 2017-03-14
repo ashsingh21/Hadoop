@@ -2,7 +2,6 @@
  * Created by ashu on 3/13/2017.
  */
 
-import FileWriters.HDFSFileWriter;
 import Pagerank.PageRank;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
@@ -27,44 +26,30 @@ public class WebSpider {
     private final ConcurrentHashMap<String, AtomicInteger> hostnames = new ConcurrentHashMap<String, AtomicInteger>();
     // keep unique uri's
     private final Set<URI> urlSet = Collections.synchronizedSet(new LinkedHashSet<URI>());
-    private String output;
     // a blocking queue / producer consumer pattern
-    private final LinkedBlockingQueue<URI> linkQueue;
+    private final LinkedBlockingDeque<URI> linkQueue;
     private CloseableHttpClient client;
     private AtomicInteger count;
-    private int iterations;
+    private int linkSize;
 
-    public WebSpider(CloseableHttpClient client, int iterations) {
+    public WebSpider(CloseableHttpClient client, int linkSize) {
         this.client = client;
-        linkQueue = new LinkedBlockingQueue<>();
+        linkQueue = new LinkedBlockingDeque<>();
         count = new AtomicInteger();
-        this.iterations = iterations;
+        this.linkSize = linkSize;
     }
-
-    public WebSpider(CloseableHttpClient client,int iterations, String output) {
-        this(client,iterations);
-        this.output = output;
-    }
-
 
     // a simple bfs crawl links in the page and create nodes with them
     public void addNewUrls() throws Exception {
         ExecutorService pool = Executors.newFixedThreadPool(100);
-        for (URI uri; (uri = linkQueue.poll(10, TimeUnit.SECONDS)) != null; ) {
-            System.out.println("Count: " + count.get());
-            if(count.incrementAndGet() > iterations){
-                System.out.println("Initiating shutdown");
-                shutdown(pool);
-            }
+        for (URI uri; (uri = linkQueue.poll(120, TimeUnit.SECONDS)) != null; ) {
             if (!urlSet.add(uri)) continue;
             Thread current = Thread.currentThread();
             String threadName = current.getName();
             current.setName("Crawl: " + uri.toString());
-
+            count.incrementAndGet();
             try {
-                Future<StringBuilder> future = pool.submit(new Crawl(uri, linkQueue, client, hostnames,count, iterations));
-                StringBuilder sb = future.get();
-                HDFSFileWriter.getInstance().writeToFile(sb, pool.isTerminated());
+                pool.execute(new Crawl(uri, linkQueue, client, hostnames, count,linkSize));
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
@@ -72,18 +57,18 @@ public class WebSpider {
             }
         }
 
-
-
-
+        shutdown(pool);
     }
 
-    private void shutdown(ExecutorService pool){
+    private void shutdown(ExecutorService pool) {
+        System.out.println("Shutodown initiated");
         pool.shutdown();
         try {
-            if (!pool.awaitTermination(5, TimeUnit.MINUTES)) {
+            if (!pool.awaitTermination(20, TimeUnit.MINUTES)) {
                 pool.shutdownNow(); // terminate every thread
-                if (!pool.awaitTermination(60, TimeUnit.SECONDS))
+                if (!pool.awaitTermination(2, TimeUnit.MINUTES)) {
                     System.out.println("Didnt terminate"); // didn't terminate
+                }
             }
 
         } catch (InterruptedException e) {
@@ -94,16 +79,14 @@ public class WebSpider {
 
 
     public void execute() throws Exception {
-        for (int i = 0; i < 3; i++) {
-            addNewUrls();
-        }
+        addNewUrls();
     }
 
 
     public static void main(String[] args) throws Exception {
 
-        if (args.length != 3) {
-            System.out.println("Usage: <Starting link> <total Links> <iterations>");
+        if (args.length != 2) {
+            System.out.println("Usage: <Starting link>  <Iterations>");
             return;
         }
 
@@ -122,7 +105,7 @@ public class WebSpider {
                         build();
 
 
-        WebSpider webCrawler = new WebSpider(client, Integer.parseInt(args[1]));
+        WebSpider webCrawler = new WebSpider(client, 2000);
 
 
         URI uri = new URI(args[0]);
@@ -130,7 +113,7 @@ public class WebSpider {
         webCrawler.execute();
 
         PageRank pageRank = new PageRank();
-        pageRank.run(Integer.parseInt(args[2]));
+        pageRank.run(Integer.parseInt(args[1]));
 
     }
 

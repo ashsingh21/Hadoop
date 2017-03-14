@@ -16,49 +16,43 @@ import java.io.OutputStreamWriter;
 public class HDFSFileWriter  {
 
     private static final HDFSFileWriter instance = new HDFSFileWriter();
-    // resources directory
-    private static BufferedWriter bw;
 
+    private HDFSFileWriter() {
 
-    private HDFSFileWriter(){
+    }
+
+    public synchronized void writeToFile(StringBuilder sb) throws IOException {
         String output = "output";
 
         Configuration conf = Conf.getConf();
 
-        // hadoop file system configurations
-        conf.set("fs.hdfs.impl",
-                org.apache.hadoop.hdfs.DistributedFileSystem.class.getName()
-        );
-        conf.set("fs.file.impl",
-                org.apache.hadoop.fs.LocalFileSystem.class.getName()
-        );
-
         FileSystem fs = null;
         try {
-             fs = FileSystem.get(conf);
+            fs = FileSystem.get(conf);
         }catch (IOException e){
             System.out.println("Can't create File System: " + e);
         }
 
         Path workingDir = fs.getHomeDirectory();
-        Path out = new Path("/WebCrawler/iter0/" + output + ".tsv");
+        Path out = new Path("/WebCrawler/iter0/" + output);
 
         Path completePath = Path.mergePaths(workingDir,out);
-        try {
-            bw = new BufferedWriter(new OutputStreamWriter(fs.create(completePath,true)));
-        }catch (IOException e){
-           System.out.println("Can't create writer: " + e);
-        }
-    }
 
-    public synchronized void writeToFile(StringBuilder sb, boolean isShutDown) throws IOException {
-        if(isShutDown) {
-            bw.close();
-        }
-        else if (sb != null) {
+       BufferedWriter bw = null;
+
+       try {
+           if(fs.exists(completePath)){
+               bw = new BufferedWriter(new OutputStreamWriter(fs.append(completePath)));
+           } else bw = new BufferedWriter(new OutputStreamWriter(fs.create(completePath)));
+       }catch (IOException e){
+           e.printStackTrace();
+       }
+
+         if (sb != null) {
             bw.write(sb.toString());
             bw.newLine();
         }
+        bw.close();
     }
 
     // return the singleton instance
