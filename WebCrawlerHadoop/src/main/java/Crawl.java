@@ -102,7 +102,7 @@ public class Crawl implements Runnable {
                 if (atomicInteger.intValue() < linksSize) {
                     uriLinkedBlockingQeque.add(childLink);
                 }
-                sb.append("\t").append(childLink.toString());
+                sb.append(childLink.toString());
             }
         }
 

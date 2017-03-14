@@ -28,14 +28,20 @@ public class PageRank {
         public void map(LongWritable key, Text value, Context ctx) throws IOException, InterruptedException {
 
             String line = value.toString();
-            String[] parts = line.trim().split("\\t");
+            String[] parts = line.trim().split("\\t+");
             String link = parts[0];
+            double rank = 0.2;
+            try {
+                 rank = Double.parseDouble(parts[1]);
+            } catch (NumberFormatException e){
+                System.out.print("Not a valid number");
+            }
 
-            double rank = Double.parseDouble(parts[1]);
             StringBuilder sb = new StringBuilder("|");
             if (parts.length > 2) {
                 int totalOutlinks = parts.length - 2;
                 for (int i = 3; i < parts.length; i++) {
+
                     // output format "," seperated : key: <outgoing link>  value: <link> <rank> <total outgoing links>
                     ctx.write(new Text(parts[i]), new Text(link + "," + rank + "," + totalOutlinks));
                     sb.append(parts[i]).append("\t");
@@ -65,9 +71,15 @@ public class PageRank {
                 }
 
                 String[] parts = value.split(",");
-                double rank = Double.valueOf(parts[1]);
-                int totalOutLinks = Integer.valueOf(parts[2]);
+                double rank = 0.2;
+                double totalOutLinks = 1;
 
+                try {
+                    rank = Double.valueOf(parts[1]);
+                    totalOutLinks = Double.valueOf(parts[2]);
+                }catch (NumberFormatException e){
+                    System.out.println("Invalid number");
+                }
                 calculatedRank += (rank / totalOutLinks);
             }
 
@@ -87,7 +99,13 @@ public class PageRank {
             String[] parts = line.split("\\t");
 
             String link = parts[0];
-            Double rank = Double.parseDouble(parts[1]);
+            double rank = 0.2;
+            try {
+                rank = Double.parseDouble(parts[1]);
+            }catch (NumberFormatException e){
+                System.out.print("Not a valid number");
+            }
+
 
             ctx.write(new DoubleWritable(rank), new Text(link));
 

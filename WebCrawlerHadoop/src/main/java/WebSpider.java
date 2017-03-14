@@ -60,6 +60,7 @@ public class WebSpider {
         shutdown(pool);
     }
 
+    // stop threads
     private void shutdown(ExecutorService pool) {
         System.out.println("Shutodown initiated");
         pool.shutdown();
@@ -73,7 +74,7 @@ public class WebSpider {
 
         } catch (InterruptedException e) {
             pool.shutdownNow(); // try again
-            Thread.currentThread().interrupt(); // interrup threads if not interrupted
+            Thread.currentThread().interrupt();
         }
     }
 
@@ -85,8 +86,8 @@ public class WebSpider {
 
     public static void main(String[] args) throws Exception {
 
-        if (args.length != 2) {
-            System.out.println("Usage: <Starting link>  <Iterations>");
+        if (args.length != 3) {
+            System.out.println("Usage: <Starting link>  <Iterations> <total links>");
             return;
         }
 
@@ -105,7 +106,7 @@ public class WebSpider {
                         build();
 
 
-        WebSpider webCrawler = new WebSpider(client, 2000);
+        WebSpider webCrawler = new WebSpider(client, Integer.parseInt(args[2]));
 
 
         URI uri = new URI(args[0]);
@@ -113,7 +114,10 @@ public class WebSpider {
         webCrawler.execute();
 
         PageRank pageRank = new PageRank();
+        System.out.println("Calculating Page Rank....");
         pageRank.run(Integer.parseInt(args[1]));
+
+        System.out.println("Finished");
 
     }
 

@@ -1,30 +1,21 @@
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
-import org.jsoup.Jsoup;
-import org.apache.hadoop.conf.Configuration;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URI;
-
-import static org.apache.http.HttpHeaders.USER_AGENT;
+package OldCrawler;
 
 /**
  * Created by ashu on 3/11/2017.
  */
 public class Test {
 
-    public static void main(String... args) throws Exception{
+    public static void main(String... args) throws Exception {
 
         String url = "http://www.youtube.com/";
 
-        HttpClient client = HttpClientBuilder.create().build();
+        String a = "https://el.wikipedia.org/wiki/\t1\t\thttps://el.wikipedia.org/wiki/#mw-head\t";
+        StringBuilder sb = new StringBuilder("|");
+        sb.append(a);
+        if(sb.toString().startsWith("|")) System.out.print(sb.toString().substring(1));
+       // System.out.println(Integer.parseInt(parts[1]));
+
+     /*   HttpClient client = HttpClientBuilder.create().build();
         HttpGet request = new HttpGet(url);
 
         // add request header
@@ -32,7 +23,7 @@ public class Test {
         HttpResponse response = null;
         try {
             response = client.execute(request);
-        }catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -52,7 +43,7 @@ public class Test {
             result.append(line);
         }*/
 
-        String con = response.getEntity().getContentType().getValue();
+     /*   String con = response.getEntity().getContentType().getValue();
         System.out.println(con);
 
         String[] parts = con.split(";");
@@ -76,5 +67,6 @@ public class Test {
             System.out.println(f.getHost());
 
         }
+    }*/
     }
 }

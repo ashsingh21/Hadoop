@@ -13,7 +13,7 @@ import java.io.OutputStreamWriter;
  */
 
 // writes a file to the HDFS
-public class HDFSFileWriter  {
+public class HDFSFileWriter {
 
     private static final HDFSFileWriter instance = new HDFSFileWriter();
 
@@ -29,34 +29,35 @@ public class HDFSFileWriter  {
         FileSystem fs = null;
         try {
             fs = FileSystem.get(conf);
-        }catch (IOException e){
+        } catch (IOException e) {
             System.out.println("Can't create File System: " + e);
         }
 
         Path workingDir = fs.getHomeDirectory();
         Path out = new Path("/WebCrawler/iter0/" + output);
 
-        Path completePath = Path.mergePaths(workingDir,out);
+        Path completePath = Path.mergePaths(workingDir, out);
 
-       BufferedWriter bw = null;
+        BufferedWriter bw = null;
 
-       try {
-           if(fs.exists(completePath)){
-               bw = new BufferedWriter(new OutputStreamWriter(fs.append(completePath)));
-           } else bw = new BufferedWriter(new OutputStreamWriter(fs.create(completePath)));
-       }catch (IOException e){
-           e.printStackTrace();
-       }
+        try {
+            if (fs.exists(completePath)) {
+                bw = new BufferedWriter(new OutputStreamWriter(fs.append(completePath)));
+            } else bw = new BufferedWriter(new OutputStreamWriter(fs.create(completePath)));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-         if (sb != null) {
+        if (sb != null && bw != null) {
             bw.write(sb.toString());
             bw.newLine();
+            bw.close();
         }
-        bw.close();
+
     }
 
     // return the singleton instance
-    public static HDFSFileWriter getInstance(){
+    public static HDFSFileWriter getInstance() {
         return instance;
     }
 }
