@@ -1,4 +1,4 @@
-import FileWriters.HDFSFileWriter;
+import FileWriters.MultipleFileWriter;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -10,6 +10,7 @@ import java.net.URI;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by ashu on 3/13/2017.
@@ -22,15 +23,18 @@ public class Crawl implements Runnable {
     private ConcurrentHashMap<String, AtomicInteger> hostnames;
     private AtomicInteger atomicInteger;
     private int linksSize;
+    private AtomicLong fileCounter;
 
     public Crawl(URI uri, LinkedBlockingDeque<URI> uriLinkedBlockingQeque,
-                 HttpClient client, ConcurrentHashMap<String, AtomicInteger> hostnames, AtomicInteger atomicInteger, int linksSize) {
+                 HttpClient client, ConcurrentHashMap<String, AtomicInteger> hostnames,
+                 AtomicInteger atomicInteger, int linksSize, AtomicLong fileCounter) {
         this.uri = uri;
         this.client = client;
         this.uriLinkedBlockingQeque = uriLinkedBlockingQeque;
         this.hostnames = hostnames;
         this.atomicInteger = atomicInteger;
         this.linksSize = linksSize;
+        this.fileCounter = fileCounter;
     }
 
     @Override
@@ -49,7 +53,7 @@ public class Crawl implements Runnable {
 
         if (prevCount != null) hostCount = prevCount;
         // if a host has been visited 150 times leave it
-        if (hostCount.incrementAndGet() > 150) return;
+        if (hostCount.incrementAndGet() > 30000) return;
 
         HttpGet request = new HttpGet(url);
         HttpResponse response = client.execute(request);
@@ -85,7 +89,7 @@ public class Crawl implements Runnable {
         URIBuilder builder = new URIBuilder(url);
         URI baseLink = builder.build();
 
-
+        // start building the data for the output file
         StringBuilder sb = new StringBuilder(url.toString()).append("\t");
         sb.append(1).append("\t");
         document.select("a[href]").size();
@@ -102,11 +106,12 @@ public class Crawl implements Runnable {
                 if (atomicInteger.intValue() < linksSize) {
                     uriLinkedBlockingQeque.add(childLink);
                 }
-                sb.append(childLink.toString());
+                sb.append(childLink.toString()).append("\t");
             }
         }
 
         // write the urls to the file
-        HDFSFileWriter.getInstance().writeToFile(sb);
+        new MultipleFileWriter().writeToFile(sb, fileCounter.incrementAndGet());
+        //  HDFSFileWriter.getInstance().writeToFile(sb);
     }
 }

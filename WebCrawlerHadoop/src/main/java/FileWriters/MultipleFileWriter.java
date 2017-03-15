@@ -9,19 +9,13 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 
 /**
- * Created by ashu on 3/11/2017.
+ * Created by ashu on 3/14/2017.
  */
+// writes a file in hdfs
+public class MultipleFileWriter {
 
-// writes a file to the HDFS
-public class HDFSFileWriter {
 
-    private static final HDFSFileWriter instance = new HDFSFileWriter();
-
-    private HDFSFileWriter() {
-
-    }
-
-    public synchronized void writeToFile(StringBuilder sb) throws IOException {
+    public  void writeToFile(StringBuilder sb , long i) throws IOException {
 
         Configuration conf = Conf.getConf();
 
@@ -33,16 +27,14 @@ public class HDFSFileWriter {
         }
 
         Path workingDir = fs.getHomeDirectory();
-        Path out = new Path("/WebCrawler/links/output.tsv");
+        Path out = new Path("/WebCrawler/links/" + i + ".link");
 
         Path completePath = Path.mergePaths(workingDir, out);
 
         BufferedWriter bw = null;
 
         try {
-            if (fs.exists(completePath)) {
-                bw = new BufferedWriter(new OutputStreamWriter(fs.append(completePath)));
-            } else bw = new BufferedWriter(new OutputStreamWriter(fs.create(completePath)));
+            bw = new BufferedWriter(new OutputStreamWriter(fs.create(completePath)));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -52,11 +44,6 @@ public class HDFSFileWriter {
             bw.newLine();
             bw.close();
         }
-
     }
 
-    // return the singleton instance
-    public static HDFSFileWriter getInstance() {
-        return instance;
-    }
 }

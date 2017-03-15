@@ -41,12 +41,10 @@ public class PageRank {
             if (parts.length > 2) {
                 int totalOutlinks = parts.length - 2;
                 for (int i = 3; i < parts.length; i++) {
-
                     // output format "," seperated : key: <outgoing link>  value: <link> <rank> <total outgoing links>
                     ctx.write(new Text(parts[i]), new Text(link + "," + rank + "," + totalOutlinks));
                     sb.append(parts[i]).append("\t");
                 }
-
                 // send back the original links
                 ctx.write(new Text(link), new Text(sb.toString()));
             }
@@ -70,6 +68,7 @@ public class PageRank {
                     continue;
                 }
 
+                // get the value
                 String[] parts = value.split(",");
                 double rank = 0.2;
                 double totalOutLinks = 1;
@@ -84,7 +83,6 @@ public class PageRank {
             }
 
             calculatedRank = DMP * calculatedRank + (1 - DMP);
-
             ctx.write(new Text(key), new Text("\t" + calculatedRank + links));
 
         }
@@ -96,7 +94,7 @@ public class PageRank {
         @Override
         public void map(LongWritable key, Text value, Context ctx) throws IOException, InterruptedException {
             String line = value.toString();
-            String[] parts = line.split("\\t");
+            String[] parts = line.split("\\t+");
 
             String link = parts[0];
             double rank = 0.2;
@@ -105,8 +103,6 @@ public class PageRank {
             }catch (NumberFormatException e){
                 System.out.print("Not a valid number");
             }
-
-
             ctx.write(new DoubleWritable(rank), new Text(link));
 
         }
@@ -129,6 +125,7 @@ public class PageRank {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
 
+        // add input and output paths
         FileInputFormat.addInputPath(job, inputPath);
         FileOutputFormat.setOutputPath(job, outputPath);
 
@@ -167,8 +164,7 @@ public class PageRank {
         Path workingDir = fs.getHomeDirectory();
         Path out = new Path("/WebCrawler/iter0/" + output + ".tsv");
 
-        Path completePath = Path.mergePaths(workingDir, out);
-
+        // make out of  reducer instance input of other mapper instance
         int n;
         for (n = 0; n < runs; n++) {
             Path inputPath = Path.mergePaths(workingDir, new Path("/WebCrawler/iter" + n + "/"));
@@ -176,6 +172,7 @@ public class PageRank {
             startPageRank(inputPath, outputPath);
         }
 
+        // take the last output and properly format it
         structureOutput(Path.mergePaths(workingDir, new Path("/WebCrawler/iter" + n + "/")),
                 Path.mergePaths(workingDir, new Path("/WebCrawler/PageRank/")));
 

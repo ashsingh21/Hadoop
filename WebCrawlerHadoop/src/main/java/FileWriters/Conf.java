@@ -14,10 +14,12 @@ public class Conf {
         configuration.addResource(new Path("/home/ashu/hadoop/etc/hadoop/core-site.xml"));
         configuration.addResource(new Path("/home/ashu/hadoop/etc/hadoop/hdfs-site.xml"));
 
+        // add the hdfs configurations
         configuration.set("fs.hdfs.impl",
                 org.apache.hadoop.hdfs.DistributedFileSystem.class.getName()
         );
 
+        // local file system configurations
         configuration.set("fs.file.impl",
                 org.apache.hadoop.fs.LocalFileSystem.class.getName()
         );
@@ -27,4 +29,5 @@ public class Conf {
 
         return configuration;
     }
+
 }
