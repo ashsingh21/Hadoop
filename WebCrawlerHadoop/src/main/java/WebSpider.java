@@ -51,7 +51,7 @@ public class WebSpider {
     // a simple bfs crawl links in the page and create nodes with them
     public void addNewUrls() throws Exception {
         ExecutorService pool = Executors.newFixedThreadPool(100);
-        for (URI uri; (uri = linkQueue.poll(160, TimeUnit.SECONDS)) != null; ) {
+        for (URI uri; (uri = linkQueue.poll(240, TimeUnit.SECONDS)) != null; ) {
             if (!urlSet.add(uri)) continue;
             Thread current = Thread.currentThread();
             String threadName = current.getName();

@@ -32,8 +32,8 @@ public class PageRank {
             String link = parts[0];
             double rank = 0.2;
             try {
-                 rank = Double.parseDouble(parts[1]);
-            } catch (NumberFormatException e){
+                rank = Double.parseDouble(parts[1]);
+            } catch (NumberFormatException e) {
                 System.out.print("Not a valid number");
             }
 
@@ -76,7 +76,7 @@ public class PageRank {
                 try {
                     rank = Double.valueOf(parts[1]);
                     totalOutLinks = Double.valueOf(parts[2]);
-                }catch (NumberFormatException e){
+                } catch (NumberFormatException e) {
                     System.out.println("Invalid number");
                 }
                 calculatedRank += (rank / totalOutLinks);
@@ -92,19 +92,15 @@ public class PageRank {
     public static class StructureMapper extends Mapper<LongWritable, Text, DoubleWritable, Text> {
 
         @Override
-        public void map(LongWritable key, Text value, Context ctx) throws IOException, InterruptedException {
+        public void map(LongWritable key, Text value, Context ctx) throws IOException, InterruptedException,NumberFormatException {
             String line = value.toString();
             String[] parts = line.split("\\t+");
 
             String link = parts[0];
-            double rank = 0.2;
-            try {
-                rank = Double.parseDouble(parts[1]);
-            }catch (NumberFormatException e){
-                System.out.print("Not a valid number");
-            }
-            ctx.write(new DoubleWritable(rank), new Text(link));
+            double rank;
 
+            rank = Double.parseDouble(parts[1]);
+            ctx.write(new DoubleWritable(rank), new Text(link));
         }
 
     }
@@ -142,6 +138,7 @@ public class PageRank {
         job.setMapperClass(StructureMapper.class);
         job.setMapOutputKeyClass(DoubleWritable.class);
         job.setMapOutputValueClass(Text.class);
+        job.setSortComparatorClass(DescendingComparator.class);
 
         FileInputFormat.addInputPath(job, inputPath);
         FileOutputFormat.setOutputPath(job, outpath);
