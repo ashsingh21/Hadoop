@@ -52,7 +52,7 @@ public class Crawl implements Runnable {
         AtomicInteger prevCount = hostnames.putIfAbsent(url.getHost(), hostCount);
 
         if (prevCount != null) hostCount = prevCount;
-        // if a host has been visited 150 times leave it
+        // if on the same site for 30000 links
         if (hostCount.incrementAndGet() > 30000) return;
 
         HttpGet request = new HttpGet(url);
