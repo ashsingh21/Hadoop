@@ -81,10 +81,8 @@ public class PageRank {
                 }
                 calculatedRank += (rank / totalOutLinks);
             }
-
             calculatedRank = DMP * calculatedRank + (1 - DMP);
             ctx.write(new Text(key), new Text("\t" + calculatedRank + links));
-
         }
     }
 
@@ -92,7 +90,7 @@ public class PageRank {
     public static class StructureMapper extends Mapper<LongWritable, Text, DoubleWritable, Text> {
 
         @Override
-        public void map(LongWritable key, Text value, Context ctx) throws IOException, InterruptedException,NumberFormatException {
+        public void map(LongWritable key, Text value, Context ctx) throws IOException, InterruptedException, NumberFormatException {
             String line = value.toString();
             String[] parts = line.split("\\t+");
 
