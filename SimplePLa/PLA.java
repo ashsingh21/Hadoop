@@ -3,6 +3,7 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * Created by ashu on 2/4/2017.
  */
+ // A Simple perceptron learning algorithm
 public class PLA {
 
     public static void main(String... args) {
@@ -59,7 +60,7 @@ public class PLA {
 
             if (index == data.length - 1) {
                 errorRate = errorCount / data.length;
-                if (errorRate <= 0.2) break;
+                if (errorRate <= 0.2) break; // if the desired error rate is achieved break
                 else errorCount = 0;
             }
 
@@ -79,7 +80,7 @@ public class PLA {
 
     /******** helper methods ************/
 
-
+   // update the weights array
     static void updateWeights(float[] w, float[] x, float k, float c, float d) {
         checkLengths(w, x);
         w[0] += c * d * k;

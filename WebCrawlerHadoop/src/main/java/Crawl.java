@@ -84,7 +84,7 @@ public class Crawl implements Runnable {
         String html = EntityUtils.toString(response.getEntity());
 
         // parse the html string
-        org.jsoup.nodes.Document document = Jsoup.parse(html, url.toString());
+        org.jsoup.nodes.Document document = Jsoup.parseBodyFragment(html, url.toString());
 
         URIBuilder builder = new URIBuilder(url);
         URI baseLink = builder.build();
