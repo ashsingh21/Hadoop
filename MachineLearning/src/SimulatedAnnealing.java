@@ -46,6 +46,7 @@ public class SimulatedAnnealing {
         initialize();
         int oldCost = calulateVal(variables);
         while (Temp > 1) {
+
             for (int i = 0; i < 500; i++) {
                 int[] newSolution = neighbors(variables);
                 int newCost = calulateVal(newSolution);
@@ -57,7 +58,7 @@ public class SimulatedAnnealing {
                 }
             }
 
-            Temp = (1 - cooling) * Temp;
+            Temp *= (1 - cooling);
         }
         printArray(variables);
         return variables;
@@ -70,7 +71,7 @@ public class SimulatedAnnealing {
         for (int i = 0; i < solution.length; i++) {
             newSolution[i] = solution[i] + generateRandom(min, max);
             //clip value so that it doesn't exceed bounds
-            if (newSolution[i] > 10 || newSolution[i] < -10) newSolution[i] = generateRandom(min,max);
+            if (newSolution[i] > max || newSolution[i] < min) newSolution[i] = generateRandom(min,max);
         }
         return newSolution;
     }
