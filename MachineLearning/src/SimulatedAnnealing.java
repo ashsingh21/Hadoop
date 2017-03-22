@@ -31,8 +31,7 @@ public class SimulatedAnnealing {
     }
 
     private int generateRandom(int min, int max) {
-        int rand = random.nextInt((max - min) + 1) + min;
-        return rand;
+        return  random.nextInt((max - min) + 1) + min;
     }
 
     // initialize the array with random variables
