@@ -1,5 +1,5 @@
 # Hadoop
-Some of the projects that I worked on while learning.
+Some of the projects that I worked on while learning hadoop.
 
 # Bayesian Averag
 A map reduce based bayesian average calulator
